@@ -8,14 +8,5 @@ public class Stable extends Merchant{
 			Merchant.EmotionalState emotionalState) {
 		super("Stable", money, location, inventory, emotionalState);
 	}
-
-	public void sellHorseCare() {
-		
-	}
 	
-	public void upgradeHorse() {
-		
-	}
-	
-	//swap horse, store horse
 }

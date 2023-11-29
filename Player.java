@@ -87,12 +87,16 @@ public class Player {
 			}
 			else if (buyable instanceof Horse){
 				Horse horse = (Horse) buyable;
+				Stable stable = (Stable) merchant;
 				if (horse.isOwned()){
-					System.out.println("Can't buy already owned horse again");
+					System.out.println("Horse already owned, equipping");
+					equipHorse(horse, stable);
 					return;//purchase doesn't happen
 				}
 				else {
 					horse.owned=true;//the horse can then be equipped as active horse by horse seller
+					System.out.println("New horse bought and equipped, old horse can be equipped in stable.");
+					equipHorse(horse, stable);
 				}
 				
 			}
@@ -100,6 +104,7 @@ public class Player {
 			merchant.money=merchant.money+buyable.getPrice();
 		}
 		System.out.println(buyable.name+ " purchase complete");
+		System.out.println("Remaining money: $"+money);
 	}
 	
 	//Player sells item to merchant,
@@ -129,6 +134,7 @@ public class Player {
 				else {
 					merchant.inventory.put(item, 1);
 				}
+				System.out.println("SOLD for $"+buyable.price);
 				
 			}
 			else if (buyable instanceof Horse) {
@@ -138,12 +144,14 @@ public class Player {
 						horse.owned=false;
 						equippedHorse=null;
 						merchant.inventory.put(horse, 1);
+						System.out.println("Sold equipped horse, please equip a new horse.");
 					}
 					else {//horse is already in stable, change status of ownership
 						merchant.inventory.remove(horse);
 						horse.owned=false;
 						merchant.inventory.put(horse, 1);
 					}
+					System.out.println("SOLD for $"+buyable.price);
 				}
 				else {
 					System.out.println("Can only sell horse to stable merchant");
@@ -181,8 +189,13 @@ public class Player {
 	}
 	
 	public void rob(Merchant merchant) {
+		if (Location.calculateDistance(currentLocation, merchant.location)>5){
+			System.out.println("No merchant in 5m radius to rob.");
+			return;
+		}
 		if (merchant.emotionalState!=Merchant.EmotionalState.SCARED) {
 			merchant.emotionalState=Merchant.EmotionalState.SCARED;
+			System.out.println("Merchant has been frightened, won't deal with you.");
 		}
 		if (merchant.money<=0){
 			System.out.println("Robbery victim has no money to give");
@@ -191,13 +204,22 @@ public class Player {
 		int oldMoney = money;
 		money+=merchant.money;
 		merchant.money=0;
-		System.out.println("Succesfully robbery, gained $"+(money-oldMoney));
+		System.out.println("Succesful robbery of "+merchant.name+", gained $"+(money-oldMoney));
 	}
 	
 	
 	public void shootGun() {
+		if (ammo<=0){
+			System.out.println("No ammo remaining");
+			return;
+		}
 		ammo--;
 		if (Location.calculateDistance(currentLocation, nearestMerchant.location)<5){
+			if (nearestMerchant.emotionalState==Merchant.EmotionalState.SCARED) {
+				System.out.println(nearestMerchant.name+" is still scared");
+				System.out.println("Shot fired, remaining: "+ammo);
+				return;
+			}
 			nearestMerchant.emotionalState=Merchant.EmotionalState.SCARED;
 			System.out.println("Shot gun near "+nearestMerchant.name+",they are now scared");
 		}
@@ -207,11 +229,13 @@ public class Player {
 	
 	public void equipHorse(Horse horse, Stable stable) {
 		if (stable.inventory.containsKey(horse) && horse.isOwned()){
-			stable.inventory.put(equippedHorse, 1);
-			stable.inventory.remove(horse);
-			Horse oldHorse = equippedHorse;
-			equippedHorse = horse;
-			System.out.println(horse.name+" is now current equipped horse, "+oldHorse.name+ " is back in stable");
+			if (equippedHorse!=null) {
+				stable.inventory.put(equippedHorse, 1);
+				System.out.println(equippedHorse.name+ " is back in stable");
+			}
+				stable.inventory.remove(horse);
+				equippedHorse = horse;
+				System.out.println("Equipped "+horse.name);
 		}
 		else {
 			System.out.println("Horse not available in stable");
@@ -225,12 +249,16 @@ public class Player {
 			equippedHorse.bondLevel++;
 			System.out.println("Patted current horse "+equippedHorse.name+", bond level is now "+equippedHorse.bondLevel);
 		}
+		else {
+			System.out.println("No horse equipped");
+		}
 	}
 	
 	public void move(Location newLocation, List<Merchant> merchants) {
 		currentLocation=newLocation;
 		System.out.println("Location is now ("+currentLocation.x+", "+currentLocation.y+")");
 		nearestMerchant = findNearestMerchant(merchants);
+		System.out.println("Nearest merchant is at ("+nearestMerchant.location.x+", "+nearestMerchant.location.y+")");
 	}
 	
 	public Merchant findNearestMerchant(List<Merchant> merchants) {

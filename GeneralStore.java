@@ -7,6 +7,4 @@ public class GeneralStore extends Merchant{
 		super("General Store", money, location, inventory, emotionalState);
 	}
 	
-	//
-	
 }

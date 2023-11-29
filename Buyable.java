@@ -3,7 +3,7 @@ public class Buyable {
 	int price;
 	boolean owned;
 	String name;
-	
+	//buyable class exists so that both horses and items can be bought and sold
 	public Buyable(int price, boolean owned, String name) {
 		super();
 		this.price = price;
