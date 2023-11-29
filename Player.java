@@ -1,6 +1,7 @@
 import java.util.HashMap;
 import java.util.List;
 
+
 public class Player {
 	HashMap<Item,Integer> satchel;
 	Horse equippedHorse;
@@ -12,6 +13,7 @@ public class Player {
 	int ammo;
 	Merchant nearestMerchant;
 	
+	static double maxDistance = 5;//max distance to interact with merchants
 	
 	public Player(HashMap<Item, Integer> satchel, Horse equippedHorse, Location location, int money, int health,
 			int deadEye, int stamina, int ammo) {
@@ -59,7 +61,7 @@ public class Player {
 	}
 	
 	public void buyItem(Merchant merchant, Buyable buyable) {
-		if (Location.calculateDistance(currentLocation, merchant.location)>5){
+		if (Location.calculateDistance(currentLocation, merchant.location)>maxDistance){
 			System.out.println("Merchant "+merchant.name+" is out of range");
 			return;
 		}
@@ -189,7 +191,7 @@ public class Player {
 	}
 	
 	public void rob(Merchant merchant) {
-		if (Location.calculateDistance(currentLocation, merchant.location)>5){
+		if (Location.calculateDistance(currentLocation, merchant.location)>maxDistance){
 			System.out.println("No merchant in 5m radius to rob.");
 			return;
 		}
@@ -214,7 +216,7 @@ public class Player {
 			return;
 		}
 		ammo--;
-		if (Location.calculateDistance(currentLocation, nearestMerchant.location)<5){
+		if (Location.calculateDistance(currentLocation, nearestMerchant.location)<maxDistance){
 			if (nearestMerchant.emotionalState==Merchant.EmotionalState.SCARED) {
 				System.out.println(nearestMerchant.name+" is still scared");
 				System.out.println("Shot fired, remaining: "+ammo);
@@ -228,6 +230,14 @@ public class Player {
 	}
 	
 	public void equipHorse(Horse horse, Stable stable) {
+		if (Location.calculateDistance(currentLocation, stable.location)>maxDistance){
+			System.out.println("Stable too far away to equip horse");
+			return;
+		}
+		if (stable.emotionalState==Merchant.EmotionalState.SCARED) {
+			System.out.println("Stable is scared, won't deal with you.");
+			return;
+		}
 		if (stable.inventory.containsKey(horse) && horse.isOwned()){
 			if (equippedHorse!=null) {
 				stable.inventory.put(equippedHorse, 1);
